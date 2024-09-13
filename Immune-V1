@@ -1,0 +1,216 @@
+import random
+import time
+import threading
+import sys
+
+class ImmuneSystem:
+    def __init__(self):
+        self.immune_cells = 100  # Number of immune cells
+        self.pathogens = []  # List of pathogens
+        self.human_vitals = 100  # Starting vitals (100% healthy)
+        self.diseases = [
+            {"name": "Flu", "probability": 0.2, "min_interval": 10, "max_interval": 20, "damage_per_minute": 1},     # Common
+            {"name": "Cold", "probability": 0.2, "min_interval": 10, "max_interval": 20, "damage_per_minute": 1},    # Common
+            {"name": "COVID-19", "probability": 0.15, "min_interval": 20, "max_interval": 30, "damage_per_minute": 2},# Less common
+            {"name": "Measles", "probability": 0.1, "min_interval": 30, "max_interval": 40, "damage_per_minute": 3}, # Rare
+            {"name": "Chickenpox", "probability": 0.1, "min_interval": 30, "max_interval": 40, "damage_per_minute": 3},# Rare
+            {"name": "HIV", "probability": 0.05, "min_interval": 40, "max_interval": 60, "damage_per_minute": 4},    # Very rare
+            {"name": "Tuberculosis", "probability": 0.05, "min_interval": 40, "max_interval": 60, "damage_per_minute": 4},# Very rare
+            {"name": "Hepatitis B", "probability": 0.05, "min_interval": 40, "max_interval": 60, "damage_per_minute": 4},# Very rare
+            {"name": "Malaria", "probability": 0.05, "min_interval": 40, "max_interval": 60, "damage_per_minute": 4},# Very rare
+            {"name": "Ebola", "probability": 0.02, "min_interval": 60, "max_interval": 90, "damage_per_minute": 5},   # Extremely rare
+            {"name": "Typhoid", "probability": 0.05, "min_interval": 30, "max_interval": 50, "damage_per_minute": 3},  # Rare
+            {"name": "Hepatitis C", "probability": 0.04, "min_interval": 50, "max_interval": 70, "damage_per_minute": 4},# Rare
+            {"name": "Norovirus", "probability": 0.1, "min_interval": 15, "max_interval": 25, "damage_per_minute": 2},  # Common
+            {"name": "Pertussis", "probability": 0.1, "min_interval": 20, "max_interval": 30, "damage_per_minute": 2},  # Common
+            {"name": "West Nile Virus", "probability": 0.03, "min_interval": 60, "max_interval": 80, "damage_per_minute": 4}, # Very rare
+            {"name": "Zika Virus", "probability": 0.03, "min_interval": 60, "max_interval": 80, "damage_per_minute": 4},   # Very rare
+            {"name": "Cholera", "probability": 0.02, "min_interval": 70, "max_interval": 90, "damage_per_minute": 5}   # Extremely rare
+        ]
+        self.running = False
+        self.difficulty = "Normal"
+
+    def show_loading_bar(self, severity):
+        max_duration = 10  # Maximum duration of loading bar
+        min_duration = 1   # Minimum duration of loading bar
+        duration = min_duration + (max_duration - min_duration) * (severity / 5)
+        duration = int(duration)
+        bar_length = 20  # Length of the bar
+
+        print("Processing removal...", end="", flush=True)
+        for i in range(duration):
+            percent = int((i + 1) / duration * 100)
+            filled_length = int(bar_length * (i + 1) / duration)
+            bar = '█' * filled_length + '-' * (bar_length - filled_length)
+            sys.stdout.write(f"\r[{bar}] {percent}%")
+            sys.stdout.flush()
+            time.sleep(1)
+        print("\n")
+
+    def introduce_pathogen(self):
+        if not self.diseases:
+            print("No diseases available.")
+            return
+
+        total_probability = sum(disease["probability"] for disease in self.diseases)
+        random_choice = random.uniform(0, total_probability)
+        cumulative_probability = 0.0
+
+        for disease in self.diseases:
+            cumulative_probability += disease["probability"]
+            if random_choice <= cumulative_probability:
+                self.pathogens.append(disease)
+                print(f"\nPathogen introduced: {disease['name']}. Total pathogens: {len(self.pathogens)}")
+                return
+
+    def apply_damage(self):
+        for pathogen in self.pathogens:
+            self.human_vitals -= pathogen["damage_per_minute"] / 60  # Damage per second
+            if self.human_vitals < 0:
+                self.human_vitals = 0
+
+    def immune_response(self):
+        if self.pathogens:
+            if self.immune_cells > 0:
+                # Remove pathogens with immune response
+                response = min(self.immune_cells, len(self.pathogens))
+                self.immune_cells -= response
+                
+                for _ in range(response):
+                    pathogen = self.pathogens.pop(0)
+                    self.show_loading_bar(pathogen["damage_per_minute"])
+                    print(f"Removed pathogen: {pathogen['name']}. Remaining pathogens: {len(self.pathogens)}, immune cells: {self.immune_cells}")
+
+                # Chance for medication after removing pathogens
+                if random.random() < 0.65:
+                    print("Medication taken! Healing...")
+                    self.heal()
+                else:
+                    print("No medication taken. Healing slowly over time.")
+            else:
+                print("No immune cells left to respond.")
+        else:
+            print("No pathogens to respond to.")
+
+    def heal(self):
+        # Healing process (increase vitals over time)
+        self.human_vitals += 5
+        if self.human_vitals > 100:
+            self.human_vitals = 100
+        print(f"Human vitals after healing: {self.human_vitals}")
+
+    def remove_pathogen(self, index):
+        if 0 <= index < len(self.pathogens):
+            removed = self.pathogens.pop(index)
+            print(f"Removed pathogen: {removed['name']}. Remaining pathogens: {len(self.pathogens)}")
+        else:
+            print("Invalid pathogen index.")
+
+    def display_pathogens(self):
+        if self.pathogens:
+            print("Current pathogens:")
+            for i, pathogen in enumerate(self.pathogens, 1):
+                print(f"Pathogen cell {i}: {pathogen['name']}")
+        else:
+            print("No pathogens present.")
+
+    def display_diseases(self):
+        print("Available diseases:")
+        for i, disease in enumerate(self.diseases, 1):
+            print(f"{i}. {disease['name']} (Probability: {disease['probability']}, Interval: {disease['min_interval']}s to {disease['max_interval']}s, Damage per minute: {disease['damage_per_minute']})")
+
+    def pathogen_introduction_thread(self):
+        while self.running:
+            self.introduce_pathogen()
+            time.sleep(10)  # Introduce pathogens every 10 seconds
+
+    def show_menu(self):
+        print("\n--- Immune System Simulation ---")
+        print("1. Play")
+        print("2. Help")
+        print("3. Difficulty Options")
+        print("4. Exit")
+
+    def show_help(self):
+        print("\nHelp Menu:")
+        print("1. Play: Starts the simulation where pathogens are introduced and you manage them.")
+        print("2. Help: Shows this help menu.")
+        print("3. Difficulty Options: Change the difficulty of the game.")
+        print("4. Exit: Exit the simulation.")
+
+    def set_difficulty(self):
+        print("\nDifficulty Options:")
+        print("1. Easy")
+        print("2. Normal")
+        print("3. Hard")
+        choice = input("Select difficulty (1-3): ").strip()
+        if choice == "1":
+            self.difficulty = "Easy"
+            print("Difficulty set to Easy.")
+        elif choice == "2":
+            self.difficulty = "Normal"
+            print("Difficulty set to Normal.")
+        elif choice == "3":
+            self.difficulty = "Hard"
+            print("Difficulty set to Hard.")
+        else:
+            print("Invalid choice. Difficulty not changed.")
+
+    def run_game(self):
+        self.running = True
+        # Start pathogen introduction in a separate thread
+        thread = threading.Thread(target=self.pathogen_introduction_thread)
+        thread.daemon = True
+        thread.start()
+
+        while self.running:
+            command = input("\nEnter a command (remove, display, list, heal, exit): ").strip().lower()
+
+            if command == "remove":
+                self.display_pathogens()
+                try:
+                    index = int(input("Enter the index of the pathogen to remove: ")) - 1
+                    self.remove_pathogen(index)
+                except ValueError:
+                    print("Invalid index. Please enter a number.")
+
+            elif command == "display":
+                self.display_pathogens()
+
+            elif command == "list":
+                self.display_diseases()
+
+            elif command == "heal":
+                self.heal()
+
+            elif command == "exit":
+                print("Exiting simulation.")
+                self.running = False
+                break
+
+            else:
+                print("Invalid command. Please try again.")
+
+            # Apply damage from pathogens
+            self.apply_damage()
+            print(f"Current human vitals: {self.human_vitals}")
+
+    def menu(self):
+        while True:
+            self.show_menu()
+            choice = input("Select an option (1-4): ").strip()
+            if choice == "1":
+                self.run_game()
+            elif choice == "2":
+                self.show_help()
+            elif choice == "3":
+                self.set_difficulty()
+            elif choice == "4":
+                print("Exiting the program.")
+                break
+            else:
+                print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    system = ImmuneSystem()
+    system.menu()
