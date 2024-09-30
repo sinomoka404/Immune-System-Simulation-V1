@@ -100,7 +100,7 @@ while True:
         remove_pathogen(pathogen_index)
     elif command == "heal":
         heal_human()
-    # Additional commands go here
+     Additional commands go here
 Program Flow:
 Initial Setup: The simulation starts by defining human vitals and an empty list of pathogens.
 Pathogen Introduction: A separate thread runs to introduce pathogens at random intervals.
