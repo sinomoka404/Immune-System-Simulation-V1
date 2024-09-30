@@ -48,3 +48,10 @@ Use the difficulty option in the menu to select the level of challenge. The diff
 Navigating Commands:
 
 Use commands to interact with the game, including display to view current pathogens, list to see available diseases, and exit to end the simulation.
+
+Essential Dependencies:
+Python Standard Library:
+random: For introducing pathogens at random intervals.
+time: For handling delays (e.g., pathogen removal, healing processes).
+threading: To manage multiple processes, such as pathogens being introduced while interacting with the command center.
+sys: For interacting with the console and capturing inputs.
